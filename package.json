@@ -1,15 +1,14 @@
-{
-  "name": "christians-bible-companion-ssr-poc",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
-  },
-  "dependencies": {
-    "next": "latest",
-    "pocketbase": "latest",
-    "react": "latest",
-    "react-dom": "latest"
-  }
+"{
+"name": "christians-bible-companion-ssr-poc",
+"private": true,
+"scripts": {
+"dev": "next dev",
+"build": "next build",
+"start": "next start"
+},
+"dependencies": {
+"next": "latest",
+"react": "latest",
+"react-dom": "latest"
 }
+}"
