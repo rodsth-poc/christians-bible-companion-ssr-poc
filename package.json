@@ -8,8 +8,8 @@
   },
   "dependencies": {
     "next": "latest",
-    "pocketbase": "latest",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "pocketbase": "latest"
   }
 }
