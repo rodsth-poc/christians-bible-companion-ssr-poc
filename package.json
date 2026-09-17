@@ -1,4 +1,4 @@
-"{
+{
 "name": "christians-bible-companion-ssr-poc",
 "private": true,
 "scripts": {
@@ -11,4 +11,4 @@
 "react": "latest",
 "react-dom": "latest"
 }
-}"
+}
