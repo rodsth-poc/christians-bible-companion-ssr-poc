@@ -1,85 +1,118 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
 export default function AuthPocPage() {
-  const [accessCode, setAccessCode] = useState('');
-  const [email, setEmail] = useState('');
-  const [authorized, setAuthorized] = useState(false);
-  const [message, setMessage] = useState('');
+  const [accessCode, setAccessCode] = useState("");
+  const [accessGranted, setAccessGranted] = useState(false);
+  const [accessMessage, setAccessMessage] = useState("");
 
-  async function handleAccessCodeSubmit(event) {
+  const [email, setEmail] = useState("");
+  const [otpMessage, setOtpMessage] = useState("");
+  const [requestingOtp, setRequestingOtp] = useState(false);
+
+  async function handleAccessSubmit(event) {
     event.preventDefault();
-    setMessage('');
+    setAccessMessage("");
 
-    const response = await fetch('/api/auth-poc/authorize', {
-      method: 'POST',
+    const response = await fetch("/api/auth-poc/authorize", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ accessCode }),
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      setMessage('Invalid access code.');
+      setAccessGranted(false);
+      setAccessMessage(data.error || "Invalid access code.");
       return;
     }
 
-    setAuthorized(true);
-    setMessage('Access granted.');
+    setAccessGranted(true);
+    setAccessMessage("Access granted. Authentication testing is ready.");
   }
 
-  if (!authorized) {
-    return (
-      <main>
-        <h1>CBC PocketBase Auth POC</h1>
+  async function handleRequestOtp(event) {
+    event.preventDefault();
+    setOtpMessage("");
+    setRequestingOtp(true);
 
-        <p>This is a protected authentication test.</p>
+    try {
+      const response = await fetch("/api/auth-poc/request-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
 
-        <form onSubmit={handleAccessCodeSubmit}>
+      const data = await response.json();
+
+      if (!response.ok) {
+        setOtpMessage(data.error || "Unable to request OTP.");
+        return;
+      }
+
+      setOtpMessage(data.message || "OTP request submitted.");
+    } catch (error) {
+      setOtpMessage("Unable to contact the authentication test endpoint.");
+    } finally {
+      setRequestingOtp(false);
+    }
+  }
+
+  return (
+    <main style={{ maxWidth: "640px", margin: "40px auto", padding: "20px" }}>
+      <h1>CBC PocketBase Auth POC</h1>
+
+      <p>This is a protected authentication test.</p>
+
+      {!accessGranted ? (
+        <form onSubmit={handleAccessSubmit}>
           <label htmlFor="accessCode">POC Access Code</label>
-          <br />
+
           <input
             id="accessCode"
             type="password"
             value={accessCode}
             onChange={(event) => setAccessCode(event.target.value)}
             required
+            style={{ display: "block", width: "100%", margin: "8px 0 16px" }}
           />
-          <br />
-          <br />
+
           <button type="submit">Continue</button>
+
+          {accessMessage && <p>{accessMessage}</p>}
         </form>
+      ) : (
+        <>
+          <p>{accessMessage}</p>
 
-        {message && <p>{message}</p>}
-      </main>
-    );
-  }
+          <form onSubmit={handleRequestOtp}>
+            <label htmlFor="email">CBC Account Email</label>
 
-  return (
-    <main>
-      <h1>CBC PocketBase Auth POC</h1>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+              style={{ display: "block", width: "100%", margin: "8px 0 16px" }}
+            />
 
-      <p>Access granted. Authentication testing is ready.</p>
+            <button type="submit" disabled={requestingOtp}>
+              {requestingOtp ? "Requesting OTP..." : "Request OTP"}
+            </button>
 
-      <form>
-        <label htmlFor="email">CBC Account Email</label>
-        <br />
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          required
-        />
-        <br />
-        <br />
-        <button type="button" disabled>
-          Request OTP
-        </button>
-      </form>
+            {otpMessage && <p>{otpMessage}</p>}
+          </form>
 
-      {message && <p>{message}</p>}
+          <p>Access granted.</p>
+        </>
+      )}
     </main>
   );
 }
