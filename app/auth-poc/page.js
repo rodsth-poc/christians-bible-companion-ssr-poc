@@ -12,6 +12,7 @@ export default function AuthPocPage() {
   const [otpCode, setOtpCode] = useState("");
   const [otpMessage, setOtpMessage] = useState("");
   const [requestingOtp, setRequestingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
 
   async function handleAccessSubmit(event) {
     event.preventDefault();
@@ -67,6 +68,38 @@ export default function AuthPocPage() {
     }
   }
 
+  async function handleVerifyOtp(event) {
+    event.preventDefault();
+    setOtpMessage("");
+    setVerifyingOtp(true);
+
+    try {
+      const response = await fetch("/api/auth-poc/verify-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          otpId,
+          otpCode,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setOtpMessage(data.error || "Unable to verify OTP.");
+        return;
+      }
+
+      setOtpMessage(data.message || "OTP verification successful.");
+    } catch (error) {
+      setOtpMessage("Unable to contact the authentication test endpoint.");
+    } finally {
+      setVerifyingOtp(false);
+    }
+  }
+
   return (
     <main style={{ maxWidth: "640px", margin: "40px auto", padding: "20px" }}>
       <h1>CBC PocketBase Auth POC</h1>
@@ -118,11 +151,11 @@ export default function AuthPocPage() {
               {requestingOtp ? "Requesting OTP..." : "Request OTP"}
             </button>
 
-            {otpMessage && <p>{otpMessage}</p>}
+            {otpMessage && !otpId && <p>{otpMessage}</p>}
           </form>
 
           {otpId && (
-            <div style={{ marginTop: "24px" }}>
+            <form onSubmit={handleVerifyOtp} style={{ marginTop: "24px" }}>
               <label htmlFor="otpCode">8-Digit OTP</label>
 
               <input
@@ -132,6 +165,7 @@ export default function AuthPocPage() {
                 maxLength="8"
                 value={otpCode}
                 onChange={(event) => setOtpCode(event.target.value)}
+                required
                 style={{
                   display: "block",
                   width: "100%",
@@ -139,8 +173,12 @@ export default function AuthPocPage() {
                 }}
               />
 
-              <p>OTP received. Verification will be added next.</p>
-            </div>
+              <button type="submit" disabled={verifyingOtp}>
+                {verifyingOtp ? "Verifying OTP..." : "Verify OTP"}
+              </button>
+
+              {otpMessage && <p>{otpMessage}</p>}
+            </form>
           )}
 
           <p>Access granted.</p>
