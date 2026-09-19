@@ -21,6 +21,7 @@ export async function POST(request) {
 
     return Response.json({
       message: "OTP request submitted successfully.",
+      otpId: result.otpId,
     });
   } catch (error) {
     console.error("PocketBase OTP request failed:", error);
