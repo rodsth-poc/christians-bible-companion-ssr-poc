@@ -60,6 +60,7 @@ export default function AuthPocPage() {
       }
 
       setOtpId(data.otpId || "");
+      console.log("OTP ID received by page:", data.otpId);
       setOtpMessage(data.message || "OTP request submitted.");
     } catch (error) {
       setOtpMessage("Unable to contact the authentication test endpoint.");
