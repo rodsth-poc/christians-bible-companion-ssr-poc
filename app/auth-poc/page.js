@@ -8,6 +8,8 @@ export default function AuthPocPage() {
   const [accessMessage, setAccessMessage] = useState("");
 
   const [email, setEmail] = useState("");
+  const [otpId, setOtpId] = useState("");
+  const [otpCode, setOtpCode] = useState("");
   const [otpMessage, setOtpMessage] = useState("");
   const [requestingOtp, setRequestingOtp] = useState(false);
 
@@ -56,6 +58,7 @@ export default function AuthPocPage() {
         return;
       }
 
+      setOtpId(data.otpId || "");
       setOtpMessage(data.message || "OTP request submitted.");
     } catch (error) {
       setOtpMessage("Unable to contact the authentication test endpoint.");
@@ -80,7 +83,11 @@ export default function AuthPocPage() {
             value={accessCode}
             onChange={(event) => setAccessCode(event.target.value)}
             required
-            style={{ display: "block", width: "100%", margin: "8px 0 16px" }}
+            style={{
+              display: "block",
+              width: "100%",
+              margin: "8px 0 16px",
+            }}
           />
 
           <button type="submit">Continue</button>
@@ -100,7 +107,11 @@ export default function AuthPocPage() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
-              style={{ display: "block", width: "100%", margin: "8px 0 16px" }}
+              style={{
+                display: "block",
+                width: "100%",
+                margin: "8px 0 16px",
+              }}
             />
 
             <button type="submit" disabled={requestingOtp}>
@@ -110,9 +121,32 @@ export default function AuthPocPage() {
             {otpMessage && <p>{otpMessage}</p>}
           </form>
 
+          {otpId && (
+            <div style={{ marginTop: "24px" }}>
+              <label htmlFor="otpCode">8-Digit OTP</label>
+
+              <input
+                id="otpCode"
+                type="text"
+                inputMode="numeric"
+                maxLength="8"
+                value={otpCode}
+                onChange={(event) => setOtpCode(event.target.value)}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  margin: "8px 0 16px",
+                }}
+              />
+
+              <p>OTP received. Verification will be added next.</p>
+            </div>
+          )}
+
           <p>Access granted.</p>
         </>
       )}
     </main>
   );
 }
+```
