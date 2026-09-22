@@ -1,15 +1,16 @@
-import { NextResponse } from "next/server";
 import PocketBase from "pocketbase";
+import { cookies } from "next/headers";
 
-export async function GET(request) {
+export async function GET() {
   try {
-    const authToken = request.cookies.get("cbc_auth_token")?.value;
+    const cookieStore = await cookies();
+    const authToken = cookieStore.get("cbc_auth_token")?.value;
 
     if (!authToken) {
-      return NextResponse.json(
+      return Response.json(
         {
           authenticated: false,
-          message: "No authentication cookie was found.",
+          message: "No authentication cookie found.",
         },
         { status: 401 }
       );
@@ -23,23 +24,24 @@ export async function GET(request) {
 
     const authData = await pb.collection("users").authRefresh();
 
-    return NextResponse.json({
+    const collection = await pb.collections.getOne("userProgress");
+
+    return Response.json({
       authenticated: true,
       user: {
         id: authData.record.id,
         email: authData.record.email,
       },
+      userProgressSchema: collection,
     });
   } catch (error) {
-    console.error("Authenticated user lookup error:", error);
-
-    return NextResponse.json(
+    return Response.json(
       {
         authenticated: false,
-        message:
-          error?.message || "Unable to retrieve authenticated user.",
+        error: error?.message || "Schema inspection failed.",
+        response: error?.response || null,
       },
-      { status: 401 }
+      { status: 500 }
     );
   }
 }
