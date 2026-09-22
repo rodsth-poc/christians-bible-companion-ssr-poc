@@ -23,19 +23,33 @@ export async function GET() {
     pb.authStore.save(authToken, null);
 
     const authData = await pb.collection("users").authRefresh();
+    const userId = authData.record.id;
+
+    const result = await pb.collection("userProgress").getList(1, 1, {
+      filter: `userId = "${userId}"`,
+      sort: "dayNumber",
+      $autoCancel: false,
+    });
 
     return Response.json({
       authenticated: true,
       user: {
-        id: authData.record.id,
+        id: userId,
         email: authData.record.email,
+      },
+      userProgress: {
+        page: result.page,
+        perPage: result.perPage,
+        totalItems: result.totalItems,
+        totalPages: result.totalPages,
+        items: result.items,
       },
     });
   } catch (error) {
     return Response.json(
       {
         authenticated: false,
-        error: error?.message || "Authentication failed.",
+        error: error?.message || "userProgress read failed.",
         response: error?.response || null,
       },
       { status: 500 }
