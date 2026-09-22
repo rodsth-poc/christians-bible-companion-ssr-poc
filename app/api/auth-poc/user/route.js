@@ -24,21 +24,18 @@ export async function GET() {
 
     const authData = await pb.collection("users").authRefresh();
 
-    const collection = await pb.collections.getOne("userProgress");
-
     return Response.json({
       authenticated: true,
       user: {
         id: authData.record.id,
         email: authData.record.email,
       },
-      userProgressSchema: collection,
     });
   } catch (error) {
     return Response.json(
       {
         authenticated: false,
-        error: error?.message || "Schema inspection failed.",
+        error: error?.message || "Authentication failed.",
         response: error?.response || null,
       },
       { status: 500 }
