@@ -1,41 +1,55 @@
+import { NextResponse } from "next/server";
 import PocketBase from "pocketbase";
-
-const POCKETBASE_URL =
-  "https://christiansbiblecompanion.com/hcgi/platform";
 
 export async function POST(request) {
   try {
     const body = await request.json();
 
-    const otpId = body?.otpId?.trim();
-    const otpCode = body?.otpCode?.trim();
+    const otpId = body?.otpId;
+    const otpCode = body?.otpCode;
 
-    if (!otpId) {
-      return Response.json(
-        { error: "OTP ID is required." },
+    if (!otpId || !otpCode) {
+      return NextResponse.json(
+        { message: "OTP ID and OTP code are required." },
         { status: 400 }
       );
     }
 
-    if (!otpCode) {
-      return Response.json(
-        { error: "OTP code is required." },
-        { status: 400 }
-      );
-    }
-
-    const pb = new PocketBase(POCKETBASE_URL);
+    const pb = new PocketBase(
+      "https://christiansbiblecompanion.com/hcgi/platform"
+    );
 
     await pb.collection("users").authWithOTP(otpId, otpCode);
 
-    return Response.json({
+    const authToken = pb.authStore.token;
+
+    if (!authToken) {
+      return NextResponse.json(
+        { message: "OTP verification succeeded, but no authentication token was returned." },
+        { status: 500 }
+      );
+    }
+
+    const response = NextResponse.json({
       message: "OTP verification successful.",
     });
-  } catch (error) {
-    console.error("PocketBase OTP verification failed:", error);
 
-    return Response.json(
-      { error: "Unable to verify OTP." },
+    response.cookies.set("cbc_auth_token", authToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+    });
+
+    return response;
+  } catch (error) {
+    console.error("OTP verification error:", error);
+
+    return NextResponse.json(
+      {
+        message:
+          error?.message || "OTP verification failed.",
+      },
       { status: 500 }
     );
   }
