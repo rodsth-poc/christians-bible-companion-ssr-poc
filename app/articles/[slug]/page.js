@@ -36,9 +36,23 @@ export async function generateMetadata({ params }) {
     };
   }
 
+  const featuredImageUrl = article.featured_image
+    ? `${POCKETBASE_FILE_BASE}/${article.collectionId}/${article.id}/${article.featured_image}`
+    : null;
+
   return {
     title: article.title,
     description: article.excerpt,
+    openGraph: {
+      title: article.title,
+      description: article.excerpt,
+      ...(featuredImageUrl && {
+        images: [featuredImageUrl],
+      }),
+    },
+    alternates: {
+      canonical: `https://ssr-poc.christiansbiblecompanion.com/articles/${slug}`,
+    },
   };
 }
 
